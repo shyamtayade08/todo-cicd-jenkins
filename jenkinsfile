@@ -1,0 +1,43 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = "todo-app" // Name of your Docker image
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                // Clone your GitHub repository
+                git 'https://github.com/shyamtayade08/todo-cicd-jenkins.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Build the Docker image using the Dockerfile in the repository
+                    docker.build("${DOCKER_IMAGE}:${env.BUILD_ID}")
+                }
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                script {
+                    // Run the Docker container
+                    sh "docker run -d --name todo-app-${env.BUILD_ID} -p 5000:5000 ${DOCKER_IMAGE}:${env.BUILD_ID}"
+                }
+            }
+        }
+
+        stage('Clean Up') {
+            steps {
+                script {
+                    // Remove the Docker image after running (optional)
+                    sh "docker rmi ${DOCKER_IMAGE}:${env.BUILD_ID}"
+                }
+            }
+        }
+    }
+}
